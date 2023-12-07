@@ -16,7 +16,7 @@ class NoteLogService {
         } else {
             logger.info(`[NoteLogService] recordLog: logData is empty or not an array`);
         }
-        logger.debug(`[NoteLogService] recordLog: Recording log data: ${JSON.stringify(logData)}`);
+        // logger.debug(`[NoteLogService] recordLog: Recording log data: ${JSON.stringify(logData)}`);
         await writeNoteLogToCsv(logData, this.logFilePath);
         logger.info('[NoteLogService] recordLog: Log data recorded successfully');
     }
