@@ -1,14 +1,20 @@
 const Koa = require('koa');
 const Router = require('@koa/router');
+const bodyParser = require('koa-bodyparser'); // add this line
+
 const topicsRouter = require('./api/topics');
 const notesRouter = require('./api/notes');
 const topicConfigsRouter = require('./api/topicConfigs');
 const topicStatsRouter = require('./api/topicStats');
 const app = new Koa();
+app.use(bodyParser());
+
 const router = new Router();
 
 const koaSwagger = require('koa2-swagger-ui').koaSwagger;
 const swaggerJSDoc = require('swagger-jsdoc');
+
+console.log("Starting server.js");
 
 // Swagger definition
 const swaggerDefinition = {
@@ -19,6 +25,8 @@ const swaggerDefinition = {
     },
     host: 'localhost:3000', // the host or url of the app
     basePath: '/api', // the basepath of your endpoint
+    components: {}, // add this line
+
 };
 
 // options for the swagger docs
@@ -27,10 +35,17 @@ const options = {
     swaggerDefinition: swaggerDefinition,
     // path to the API docs
     apis: ['./src/api/**/*.js'], // pass all in array 
+    // apis: [], // 暂时移除文件
+
+
 };
+
+console.log("Initializing Swagger");
 
 // initialize swagger-jsdoc
 const swaggerSpec = swaggerJSDoc(options);
+
+console.log("Swagger initialized");
 
 app.use(koaSwagger({
   routePrefix: '/swagger', // host at /swagger instead of default /docs
@@ -47,6 +62,8 @@ app.use(async (ctx, next) => {
   }
 });
 
+console.log("Setting up routes");
+
 router.use('/api', topicsRouter.routes());
 router.use('/api', notesRouter.routes());
 router.use('/api', topicConfigsRouter.routes());
@@ -54,5 +71,7 @@ router.use('/api', topicStatsRouter.routes());
 
 app.use(router.routes());
 app.use(router.allowedMethods());
+
+console.log("Starting to listen on port 3000");
 
 app.listen(3000);

@@ -3,11 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const csvWriter = require('csv-writer').createObjectCsvWriter;
 
-exports.saveData = async (filePath, data, headers) => {
+exports.saveData = async (filePath, data, fieldNames, append = true) => {
     const writer = csvWriter({
         path: filePath,
-        header: headers,
-        append: true
+        header: fieldNames.map(name => ({ id: name, title: name })),
+        append: append
     });
 
     try {
@@ -27,4 +27,10 @@ exports.loadData = async (filePath) => {
             .on('data', row => data.push(row))
             .on('end', () => resolve(data));
     });
+};
+
+exports.updateRecordInCsv = async (filePath, updateFn, fieldNames) => {
+    const data = await this.loadData(filePath);
+    const updatedData = data.map(updateFn);
+    await this.saveData(filePath, updatedData, fieldNames, false);
 };
