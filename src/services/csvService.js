@@ -8,7 +8,7 @@ const config = require('../config'); // 确保路径正确
 const logger = require('../utils/logger'); // 确保路径正确
 
 function countCsvRecords() {
-    const filePath = config.notelogCsvFilePath; // 使用 config 中定义的路径
+    const filePath = config.noteLogCsvFilePath; // 使用 config 中定义的路径
     if (!fs.existsSync(filePath)) {
         return { totalRecords: 0, newRecords: 0 };
     }
