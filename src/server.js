@@ -2,8 +2,8 @@ const Koa = require('koa');
 const Router = require('@koa/router');
 const bodyParser = require('koa-bodyparser'); // add this line
 
-const topicsRouter = require('./api/topics');
-const notesRouter = require('./api/notes');
+const topicLogsRouter = require('./api/topicLogs');
+const noteLogsRouter = require('./api/noteLogs');
 const topicConfigsRouter = require('./api/topicConfigs');
 const topicStatsRouter = require('./api/topicStats');
 const app = new Koa();
@@ -64,8 +64,8 @@ app.use(async (ctx, next) => {
 
 console.log("Setting up routes");
 
-router.use('/api', topicsRouter.routes());
-router.use('/api', notesRouter.routes());
+router.use('/api', topicLogsRouter.routes());
+router.use('/api', noteLogsRouter.routes());
 router.use('/api', topicConfigsRouter.routes());
 router.use('/api', topicStatsRouter.routes());
 

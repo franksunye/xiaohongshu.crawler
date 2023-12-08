@@ -6,7 +6,7 @@ const { hideBin } = require('yargs/helpers');
 const fs = require('fs');
 
 const { startCrawling } = require('./services/crawlerService');
-const { gettopicIds } = require('./services/topicsFileService');
+const TopicConfigService = require('./services/topicConfigService');
 const { sendNotification, sendFile } = require('./services/wechatService');
 
 const config = require('./config');
@@ -36,7 +36,7 @@ async function crawlSingleTopic(topicId, sortType) {
 
 async function crawlAllTopics(sortType) {
     logger.info(`[app] crawlAllTopics: Starting crawl for all Topic IDs in topics.csv with sortType: ${sortType}`);
-    const topicIds = gettopicIds();
+    const topicIds = await TopicConfigService.getTopicIds();
     for (const topicId of topicIds) {
         logger.info(`[app] crawlAllTopics: Crawling topicId: ${topicId}`);
         await crawlSingleTopic(topicId, sortType);

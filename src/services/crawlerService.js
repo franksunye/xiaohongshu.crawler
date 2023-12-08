@@ -2,12 +2,11 @@
 
 const cheerio = require('cheerio');
 const axios = require('axios');
-const cheerio = require('cheerio');
 
-const { countCsvRecords } = require('./csvService'); // 引入计算 CSV 记录的函数
-const { getTopicNameById } = require('./topicsFileService');
-const topicLogService = require('./topicLogService');
-const NoteLogService = require('./noteLogService');
+const storageService = require('./storageService'); // 替换 csvService 和 topicsFileService
+const TopicLogsService = require('./topicLogsService');
+const TopicConfigService = require('./topicConfigService');
+const NoteLogsService = require('./noteLogsService');
 
 const logger = require('../utils/logger');
 const { getRandomInterval } = require('../utils/utils');
@@ -20,14 +19,14 @@ async function startCrawling(topicId, sortType) {
     let newRecordsCount = 0;
 
     // 获取爬取前的记录数
-    const initialRecordCount = countCsvRecords().totalRecords;
+    const initialRecordCount = await NoteLogsService.countLogs(); // 更新 countCsvRecords 调用
 
     let cursor = '';
     let hasMore = true;
     let requestCount = 0;
 
     // 获取话题名称
-    const topicName = getTopicNameById(topicId);
+    const topicName = await TopicConfigService.getTopicNameById(topicId);
     let totalNotesCount; // 在这里声明变量
 
     while (hasMore && requestCount < config.maxRequests) {
@@ -71,7 +70,7 @@ async function startCrawling(topicId, sortType) {
 
             logger.info(`[crawlerService] startCrawling: Extracted ${newRecords.length} new records for topicId: ${topicId}`);
 
-            await NoteLogService.recordLog(newRecords);
+            await NoteLogsService.createLog(newRecords);
 
             hasMore = data.data.has_more;
             cursor = data.data.cursor || '';
@@ -92,7 +91,7 @@ async function startCrawling(topicId, sortType) {
     }
 
     // 获取爬取后的记录数
-    const finalRecordCount = countCsvRecords().totalRecords;
+    const finalRecordCount = await await NoteLogsService.countLogs();
     newRecordsCount = finalRecordCount - initialRecordCount;
 
     logger.info(`[crawlerService] startCrawling: Extracted ${newRecordsCount} new records`);
@@ -109,14 +108,19 @@ async function startCrawling(topicId, sortType) {
 
     const logData = {
         topic_id: topicId,
-        topic_name: getTopicNameById(topicId),
+        topic_name: await TopicConfigService.getTopicNameById(topicId),
         total_notes_count: totalNotesCount,
         view_count: viewCount,
         view_count_unit: viewCountUnit,
         local_saved_notes_count: '', // 根据实际情况填写
         extract_time: new Date().toISOString()
     };
-    await topicLogService.recordLog(logData);
+    // 在所有爬取任务完成后调用一次createLog函数
+    if (!hasMore || requestCount >= config.maxRequests) {
+        logger.info(`[crawlerService] startCrawling: Calling TopicLogsService.createLog with logData = ${JSON.stringify(logData)}`);
+        await TopicLogsService.createLog(logData);
+        logger.info(`[crawlerService] startCrawling: Finished calling TopicLogsService.createLog`);
+    }
 
     return { duration, newRecordsCount, requestCount, hasMore: hasMore };
 
@@ -165,7 +169,7 @@ async function fetchTopicViews(topicId) {
     try {
         const response = await axios.get(url);
         logger.info(`[dataService] fetchTopicViews: Received response for ${url}`);
-        
+
         const html = response.data;
         const $ = cheerio.load(html);
 

@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const csvWriter = require('csv-writer').createObjectCsvWriter;
 
+const logger = require('../utils/logger');
+
 exports.saveData = async (filePath, data, fieldNames, append = true) => {
     const writer = csvWriter({
         path: filePath,
@@ -12,9 +14,9 @@ exports.saveData = async (filePath, data, fieldNames, append = true) => {
 
     try {
         await writer.writeRecords(data);
-        console.log('[storageService] saveData: Data written to CSV successfully');
+        logger.info('[storageService] saveData: Data written to CSV successfully');
     } catch (error) {
-        console.error(`[storageService] saveData: Error writing data to CSV: ${error.message}`);
+        logger.error(`[storageService] saveData: Error writing data to CSV: ${error.message}`);
     }
 };
 
@@ -29,8 +31,36 @@ exports.loadData = async (filePath) => {
     });
 };
 
+exports.writeDataWithDuplicationCheck = async (filePath, newData, fieldNames, uniqueFields) => {
+    // logger.info(`[storageService] writeDataWithDuplicationCheck: Start, filePath = ${filePath}, newData = ${JSON.stringify(newData)}, uniqueFields = ${JSON.stringify(uniqueFields)}`);
+    const existingData = fs.existsSync(filePath)
+        ? await this.loadData(filePath)
+        : [];
+    // logger.info(`[storageService] writeDataWithDuplicationCheck: Loaded existing data, existingData = ${JSON.stringify(existingData)}`);
+
+    const uniqueData = newData.filter(newRecord =>
+        !existingData.some(existingRecord =>
+            uniqueFields.every(field => existingRecord[field] === newRecord[field]))
+    );
+    logger.info(`[storageService] writeDataWithDuplicationCheck: Filtered unique data, uniqueData = ${JSON.stringify(uniqueData)}`);
+
+    if (uniqueData.length > 0) {
+        await this.saveData(filePath, uniqueData, fieldNames, true);
+        logger.info('[storageService] writeDataWithDuplicationCheck: New data was added');
+        return true;
+    } else {
+        logger.info('[storageService] writeDataWithDuplicationCheck: No new data was added');
+        return false;
+    }
+};
+
 exports.updateRecordInCsv = async (filePath, updateFn, fieldNames) => {
     const data = await this.loadData(filePath);
     const updatedData = data.map(updateFn);
     await this.saveData(filePath, updatedData, fieldNames, false);
+};
+
+exports.countRecords = async (filePath) => {
+    const records = await this.loadData(filePath);
+    return records.length - 1; // Subtract one for the header row
 };

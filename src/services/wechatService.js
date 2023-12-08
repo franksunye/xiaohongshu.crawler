@@ -6,8 +6,9 @@ const path = require('path');
 const FormData = require('form-data');
 const config = require('../config');
 const logger = require('../utils/logger'); // 导入 logger
-const { updateTopicsFile, readTopicsFile } = require('./topicsFileService');
-const { countCsvRecords } = require('./csvService');
+const TopicStatsService = require('./topicStatsService');
+const NoteLogService = require('./noteLogsService');
+
 const { formatDuration } = require('../utils/utils');
 
 async function sendWechatNotification(message) {
@@ -86,9 +87,10 @@ function generateFileName(fileType) {
 
 async function sendNotification(topicId, duration, newRecordsCount, requestCount) {
     logger.info(`[wechatService] sendNotification: Sending notification for topicId: ${topicId}`);
-    updateTopicsFile(topicId, duration, newRecordsCount);
-    const topicIdStats = readTopicsFile(topicId);
-    const { totalRecords } = countCsvRecords();
+    TopicStatsService.updateTopicStatus(topicId, duration, newRecordsCount);
+    // const topicIdStats = readTopicsFile(topicId);
+    const topicIdStats = await TopicStatsService.getTopicStats(topicId);
+    const totalRecords = await NoteLogService.countLogs();
     const message = `本次秘密任务是爬取的小红书话题 #${topicIdStats['话题名称']} 的最新内容\n` +
         `本次耗时${formatDuration(duration)}（我累计已经为你服务了${formatDuration(topicIdStats['累计爬取时间'])}）\n` +
         `我这次爬呀爬了${requestCount}次（我累计已经爬呀爬了${topicIdStats['累计爬取次数']}次）\n` +
