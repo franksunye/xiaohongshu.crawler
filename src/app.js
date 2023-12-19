@@ -38,9 +38,7 @@ async function crawlAllTopics(sortType) {
     logger.info(`[app] crawlAllTopics: Starting crawl for all Topic IDs in topics.csv with sortType: ${sortType}`);
     const topicIds = await TopicConfigService.getTopicIds();
     for (const topicId of topicIds) {
-        logger.info(`[app] crawlAllTopics: Crawling topicId: ${topicId}`);
         await crawlSingleTopic(topicId, sortType);
-        logger.info(`[app] crawlAllTopics: Notification sent for topicId: ${topicId}`);
     }
     await sendFile(config.noteLogCsvFilePath, '小红薯笔记');
     await sendFile(config.topicLogCsvFilePath, '小红薯话题');

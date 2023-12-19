@@ -20,6 +20,37 @@ exports.saveData = async (filePath, data, fieldNames, append = true) => {
     }
 };
 
+exports.loadDataByPageAndSort = async (filePath, page, pageSize, sortField, sortOrder) => {
+    const data = await new Promise((resolve, reject) => {
+        const results = [];
+        fs.createReadStream(filePath)
+            .pipe(csv.parse({ headers: true }))
+            .on('error', error => reject(error))
+            .on('data', row => results.push(row))
+            .on('end', () => resolve(results));
+    });
+
+    const sortedData = data.sort((a, b) => {
+        const aValue = sortField === 'likes' ? Number(a[sortField]) : a[sortField];
+        const bValue = sortField === 'likes' ? Number(b[sortField]) : b[sortField];
+        if (sortOrder === 'asc') {
+            return aValue > bValue ? 1 : -1;
+        } else {
+            return aValue < bValue ? 1 : -1;
+        }
+    });
+
+    const start = (page - 1) * pageSize;
+    if (start >= sortedData.length) {
+        return [];
+    }
+    let end = start + pageSize;
+    end = end > sortedData.length ? sortedData.length : end;
+    console.log(`start: ${start}, end: ${end}, sliced length: ${sortedData.slice(start, end).length}`);
+
+    return sortedData.slice(start, end);
+};
+
 exports.loadData = async (filePath) => {
     return new Promise((resolve, reject) => {
         const data = [];
@@ -32,24 +63,24 @@ exports.loadData = async (filePath) => {
 };
 
 exports.writeDataWithDuplicationCheck = async (filePath, newData, fieldNames, uniqueFields) => {
-    // logger.info(`[storageService] writeDataWithDuplicationCheck: Start, filePath = ${filePath}, newData = ${JSON.stringify(newData)}, uniqueFields = ${JSON.stringify(uniqueFields)}`);
+    logger.debug(`[storageService] writeDataWithDuplicationCheck: Start, filePath = ${filePath}, newData = ${JSON.stringify(newData)}, uniqueFields = ${JSON.stringify(uniqueFields)}`);
     const existingData = fs.existsSync(filePath)
         ? await this.loadData(filePath)
         : [];
-    // logger.info(`[storageService] writeDataWithDuplicationCheck: Loaded existing data, existingData = ${JSON.stringify(existingData)}`);
+    logger.debug(`[storageService] writeDataWithDuplicationCheck: Loaded existing data, existingData = ${JSON.stringify(existingData)}`);
 
     const uniqueData = newData.filter(newRecord =>
         !existingData.some(existingRecord =>
             uniqueFields.every(field => existingRecord[field] === newRecord[field]))
     );
-    logger.info(`[storageService] writeDataWithDuplicationCheck: Filtered unique data, uniqueData = ${JSON.stringify(uniqueData)}`);
+    logger.debug(`[storageService] writeDataWithDuplicationCheck: Filtered unique data, uniqueData = ${JSON.stringify(uniqueData)}`);
 
     if (uniqueData.length > 0) {
         await this.saveData(filePath, uniqueData, fieldNames, true);
-        logger.info('[storageService] writeDataWithDuplicationCheck: New data was added');
+        logger.debug('[storageService] writeDataWithDuplicationCheck: New data was added');
         return true;
     } else {
-        logger.info('[storageService] writeDataWithDuplicationCheck: No new data was added');
+        logger.debug('[storageService] writeDataWithDuplicationCheck: No new data was added');
         return false;
     }
 };

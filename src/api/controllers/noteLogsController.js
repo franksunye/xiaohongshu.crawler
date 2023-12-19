@@ -1,6 +1,13 @@
 const noteLogsService = require('../../services/noteLogsService');
 const logger = require('../../utils/logger');
 
+exports.getLogsByPageAndSort = async (ctx) => {
+    const { page, pageSize, sortField, sortOrder } = ctx.query;
+    logger.info(`[notesController] getLogsByPageAndSort: Start, page = ${page}, pageSize = ${pageSize}, sortField = ${sortField}, sortOrder = ${sortOrder}`);
+    ctx.body = await noteLogsService.getLogsByPageAndSort(page, pageSize, sortField, sortOrder);
+    logger.info('[notesController] getLogsByPageAndSort: End');
+};
+
 exports.getAllLogs = async (ctx) => {
     logger.info('[notesController] getAllLogs: Start');
     ctx.body = await noteLogsService.getAllLogs();
@@ -24,4 +31,11 @@ exports.createLog = async (ctx) => {
         ctx.status = 200;
         ctx.body = { message: 'Note log already exists' };
     }
+};
+
+exports.countLogs = async (ctx) => {
+    logger.info('[notesController] countLogs: Start');
+    const count = await noteLogsService.countLogs();
+    ctx.body = { count };
+    logger.info('[notesController] countLogs: End');
 };

@@ -28,7 +28,8 @@ const config = {
         'X-S': 'Z65W02FK1lAp0gO612aJsg9Wsi5KZBO6Zg1+OgwBZj13',
         'X-T': '1701671295102'
     },
-    logToConsole: process.env.NODE_ENV !== 'pro', // 在生产环境中禁用控制台日志输出
+    // logToConsole: process.env.NODE_ENV !== 'pro', // 在生产环境中禁用控制台日志输出
+    logToConsole: true,
     // ...
 };
 
@@ -37,8 +38,8 @@ if (process.env.NODE_ENV === 'pro') {
     // 生产环境的配置
     config.WeChatBotKey = '31ecfdfb-f0d4-4a80-bc13-94c267d6c32c',
     config.WeChatBotURL = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=31ecfdfb-f0d4-4a80-bc13-94c267d6c32c',
-    config.requestInterval = 20000; // 200秒间隔
-    config.maxRequests = 20; // 最大请求次数
+    config.requestInterval = 10000; // 200秒间隔
+    config.maxRequests = 10; // 最大请求次数
     config.pageSize = 10;
     config.topicsCsvFilePath = './topics.csv';
     config.noteLogCsvFilePath = './noteLog.csv';
@@ -50,7 +51,7 @@ if (process.env.NODE_ENV === 'pro') {
     config.WeChatBotURL= 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=757f09da-1f82-453d-b24f-aeddb17c04a0',
     config.requestInterval = 10000; // 100秒间隔
     config.maxRequests = 1;
-    config.pageSize = 2;
+    config.pageSize = 5;
     config.topicsCsvFilePath = './topics-dev.csv';
     config.noteLogCsvFilePath = './noteLog-dev.csv';
     config.topicLogCsvFilePath = './topicLog-dev.csv';

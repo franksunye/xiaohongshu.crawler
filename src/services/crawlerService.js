@@ -37,18 +37,13 @@ async function startCrawling(topicId, sortType) {
         if (data && data.data && data.data.notes) {
             const newRecords = data.data.notes.map(note => {
 
-                // 提取图片ID
-                const imagesId = note.user.images.split('?')[0].split('/').pop();
-                const imagesListUrlId = note.images_list && note.images_list.length > 0 ? note.images_list[0].url.split('?')[0].split('/').pop() : '';
-                const videoInfoUrlId = note.video_info ? note.video_info.url.split('?')[0].split('/').pop() : ''
-
                 return {
                     id: note.id,
                     likes: note.likes,
                     title: note.title,
                     desc: note.desc,
                     nickname: note.user.nickname,
-                    images: imagesId, // 只保存图片ID
+                    images: note.user.images, // 只保存图片ID
                     userid: note.user.userid,
                     image_count: note.image_count,
                     create_time: new Date(note.create_time).toISOString(),
@@ -56,13 +51,13 @@ async function startCrawling(topicId, sortType) {
                     topic_id: topicId,
                     type: note.type,
                     user_red_official_verify_type: note.user.red_official_verify_type || '',
-                    images_list_url: imagesListUrlId,
+                    images_list_url: note.images_list[0].url || '',
                     video_id: note.video_id || '',
-                    video_info_url: videoInfoUrlId,
+                    video_info_url: note.video_info?.url || '',
                     video_info_duration: note.video_info ? note.video_info.duration : 0,
                     video_info_played_count: note.video_info ? note.video_info.played_count : 0,
-                    video_info_first_frame: note.video_info ? note.video_info.first_frame.split('?')[0].split('/').pop() : '',
-                    video_info_thumbnail: note.video_info ? note.video_info.thumbnail.split('http://sns-img-qn.xhscdn.com/')[1] : '',
+                    video_info_first_frame: note.video_info?.first_frame || '',
+                    video_info_thumbnail: note.video_info?.thumbnail || '',
                     extract_time: new Date().toISOString() // 添加抽取时间
                 };
 
@@ -117,7 +112,7 @@ async function startCrawling(topicId, sortType) {
     };
     // 在所有爬取任务完成后调用一次createLog函数
     if (!hasMore || requestCount >= config.maxRequests) {
-        logger.info(`[crawlerService] startCrawling: Calling TopicLogsService.createLog with logData = ${JSON.stringify(logData)}`);
+        logger.debug(`[crawlerService] startCrawling: Calling TopicLogsService.createLog with logData = ${JSON.stringify(logData)}`);
         await TopicLogsService.createLog(logData);
         logger.info(`[crawlerService] startCrawling: Finished calling TopicLogsService.createLog`);
     }
@@ -129,10 +124,10 @@ async function startCrawling(topicId, sortType) {
 // 从 API 获取数据
 async function fetchData(topicId, cursor, sortType) {
     try {
-        logger.info(`[dataService] fetchData: Fetching data for topicId: ${topicId} with cursor: ${cursor} using sortType: ${sortType}`);
+        logger.info(`[crawlerService] fetchData: Fetching data for topicId: ${topicId} with cursor: ${cursor} using sortType: ${sortType}`);
 
         const randomUserAgent = config.headers.userAgents[Math.floor(Math.random() * config.headers.userAgents.length)];
-        logger.info(`[dataService] fetchData: Using User-Agent: ${randomUserAgent}`);
+        logger.info(`[crawlerService] fetchData: Using User-Agent: ${randomUserAgent}`);
 
         const response = await axios.get(config.baseUrl, {
             headers: {
@@ -151,24 +146,24 @@ async function fetchData(topicId, cursor, sortType) {
 
         // 响应数据中包含一个名为 'notes' 的数组
         const notesCount = response.data.data && response.data.data.notes ? response.data.data.notes.length : 0;
-        logger.info(`[dataService] fetchData: Data fetched successfully for topicId: ${topicId}`);
-        logger.info(`[dataService] fetchData: Total note count: ${totalNoteCount}`);
-        logger.info(`[dataService] fetchData: Number of notes fetched: ${notesCount}`);
+        logger.info(`[crawlerService] fetchData: Data fetched successfully for topicId: ${topicId}`);
+        logger.info(`[crawlerService] fetchData: Total note count: ${totalNoteCount}`);
+        logger.info(`[crawlerService] fetchData: Number of notes fetched: ${notesCount}`);
 
         return response.data;
     } catch (error) {
-        logger.error(`[dataService] fetchData: Error fetching data for topicId: ${topicId} - ${error.message}`);
+        logger.error(`[crawlerService] fetchData: Error fetching data for topicId: ${topicId} - ${error.message}`);
         throw error;
     }
 }
 
 async function fetchTopicViews(topicId) {
     const url = `https://www.xiaohongshu.com/page/topics/${topicId}`;
-    logger.info(`[dataService] fetchTopicViews: Fetching views for topic ID ${topicId}`);
+    logger.info(`[crawlerService] fetchTopicViews: Fetching views for topic ID ${topicId}`);
 
     try {
         const response = await axios.get(url);
-        logger.info(`[dataService] fetchTopicViews: Received response for ${url}`);
+        logger.info(`[crawlerService] fetchTopicViews: Received response for ${url}`);
 
         const html = response.data;
         const $ = cheerio.load(html);
@@ -180,14 +175,14 @@ async function fetchTopicViews(topicId) {
         // 从 unitText 中提取单位
         const viewCountUnit = unitText.replace(viewText, '').replace('浏览', '').trim();
 
-        logger.info(`[dataService] fetchTopicViews: Extracted view count ${viewText} and unit ${viewCountUnit} for topic ID ${topicId}`);
+        logger.info(`[crawlerService] fetchTopicViews: Extracted view count ${viewText} and unit ${viewCountUnit} for topic ID ${topicId}`);
 
         return {
             viewCount: parseFloat(viewText),
             viewCountUnit: viewCountUnit // 提取 "万" 或类似单位
         };
     } catch (error) {
-        logger.error(`[dataService] fetchTopicViews: Error fetching topic views for ${topicId}: ${error}`);
+        logger.error(`[crawlerService] fetchTopicViews: Error fetching topic views for ${topicId}: ${error}`);
         return {
             viewCount: 0,
             viewCountUnit: ''
