@@ -7,11 +7,12 @@ exports.updateTopicStatus = async (topicId, duration, newRecordsCount) => {
         if (record['话题ID'] === topicId) {
             record['累计爬取时间'] = Number(record['累计爬取时间']) + duration;
             record['累计爬取次数'] = Number(record['累计爬取次数']) + 1;
-            record['已保存话题数量'] = Number(record['已保存话题数量']) + newRecordsCount;
+            record['已抓取笔记数量'] = Number(record['已抓取笔记数量']) + newRecordsCount;
         }
         return record;
     };
-    const fieldNames = ['话题ID', '话题名称', '累计爬取时间', '累计爬取次数', '话题实际数量', '已保存话题数量', '话题登记时间', '最近一次爬取时间'];
+
+    const fieldNames = ['话题ID', '话题名称', '累计爬取时间', '累计爬取次数', '笔记实际数量', '已抓取笔记数量', '话题登记时间', '最近一次爬取时间'];
     await storageService.updateRecordInCsv(config.topicsCsvFilePath, updateFn, fieldNames);
     logger.info(`[topicService] updateTopicStatus: Updated topic successfully for topicId: ${topicId}`);
 };

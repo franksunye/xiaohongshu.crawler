@@ -33,5 +33,6 @@ router.get('/topicConfigs', topicConfigsController.getAll);
  *         description: A single topicConfig
  */
 router.get('/topicConfigs/:id', topicConfigsController.getById);
+router.get('/topicIds', topicConfigsController.getIds);
 
 module.exports = router;

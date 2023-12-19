@@ -6,7 +6,7 @@ const config = require('../config');
 const transports = [
     new winston.transports.File({
         filename: 'logs.log',
-        level: 'debug', // 设置文件传输的日志级别为 debug
+        level: 'info', // 设置文件传输的日志级别为 debug
         format: winston.format.combine(
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
             winston.format.printf(info => `${info.timestamp} - ${info.level}: ${info.message}`)
@@ -17,7 +17,7 @@ const transports = [
 if (config.logToConsole) {
     transports.push(
         new winston.transports.Console({
-            level: 'debug', // 设置控制台传输的日志级别为 debug
+            level: 'info', // 设置控制台传输的日志级别为 debug
             format: winston.format.combine(
                 winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
                 winston.format.printf(info => `${info.timestamp} - ${info.level}: ${info.message}`)

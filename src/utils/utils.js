@@ -19,7 +19,7 @@ function getRandomInterval(interval) {
     const minInterval = interval * 0.1; // 10% of the interval
     const maxInterval = interval * 1.5; // 150% of the interval
     const randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1) + minInterval);
-    logger.info(`[utils] getRandomInterval: Generated random interval: ${randomInterval}`);
+    logger.debug(`[utils] getRandomInterval: Generated random interval: ${randomInterval}`);
     return randomInterval;
 }
 
