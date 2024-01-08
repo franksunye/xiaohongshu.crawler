@@ -4,6 +4,8 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
+const crypto = require('crypto');
+
 const config = require('../config');
 const logger = require('../utils/logger'); // 导入 logger
 const TopicStatsService = require('./topicStatsService');
@@ -111,7 +113,35 @@ async function sendFile(filePath, fileType) {
     }
 }
 
+async function sendImageToWebhook(imagePath) {
+    try {
+    // Read the image file and convert it to base64
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString('base64');
+   
+    // Calculate md5 hash of the base64 image
+    const md5Hash = crypto.createHash('md5').update(imageBuffer, 'binary').digest('hex');
+   
+    // Prepare the POST data
+    const postData = {
+      msgtype: "image",
+      image: {
+        base64: base64Image,
+        md5: md5Hash
+      }
+    };
+   
+    // Send the POST request
+    const response = await axios.post(config.WeChatBotURL, postData);
+    logger.info("[wechatService] sendImageToWebhook: Image sent to Webhook successfully" + JSON.stringify(response.data));
+    } catch (error) {
+    logger.error(`[wechatService] sendImageToWebhook: Error occurred while sending image to WeChat Work: ${error.message}`);
+    }
+   }
+
 module.exports = { 
     sendNotification,
-    sendFile
+    sendFile,
+    sendImageToWebhook,
+    sendWechatNotification
 };

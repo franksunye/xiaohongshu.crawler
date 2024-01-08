@@ -14,7 +14,7 @@ exports.saveData = async (filePath, data, fieldNames, append = true) => {
 
     try {
         await writer.writeRecords(data);
-        logger.info('[storageService] saveData: Data written to CSV successfully');
+        logger.info(`[storageService] saveData: Data written to CSV successfully. Total records saved: ${data.length}`);
     } catch (error) {
         logger.error(`[storageService] saveData: Error writing data to CSV: ${error.message}`);
     }
@@ -42,7 +42,7 @@ exports.writeDataWithDuplicationCheck = async (filePath, newData, fieldNames, un
         !existingData.some(existingRecord =>
             uniqueFields.every(field => existingRecord[field] === newRecord[field]))
     );
-    logger.info(`[storageService] writeDataWithDuplicationCheck: Filtered unique data, uniqueData = ${JSON.stringify(uniqueData)}`);
+    logger.debug(`[storageService] writeDataWithDuplicationCheck: Filtered unique data, uniqueData = ${JSON.stringify(uniqueData)}`);
 
     if (uniqueData.length > 0) {
         await this.saveData(filePath, uniqueData, fieldNames, true);
