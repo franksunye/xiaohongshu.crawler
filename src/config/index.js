@@ -50,7 +50,7 @@ if (process.env.NODE_ENV === 'pro') {
     config.WeChatBotURL= 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=757f09da-1f82-453d-b24f-aeddb17c04a0',
     config.requestInterval = 10000; // 100秒间隔
     config.maxRequests = 1;
-    config.pageSize = 2;
+    config.pageSize = 5;
     config.topicsCsvFilePath = './topics-dev.csv';
     config.noteLogCsvFilePath = './noteLog-dev.csv';
     config.topicLogCsvFilePath = './topicLog-dev.csv';

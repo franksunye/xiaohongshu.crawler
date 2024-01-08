@@ -3,13 +3,15 @@ const logger = require('../../utils/logger');
 
 exports.getAllLogs = async (ctx) => {
     logger.info('[topicsController] getAllLogs: Start');
-    ctx.body = await topicsService.getAllLogs();
+    const sortOrder = ctx.query.sortOrder || 'desc';
+    ctx.body = await topicsService.getAllLogs(sortOrder);
     logger.info('[topicsController] getAllLogs: End');
 };
 
 exports.getLogById = async (ctx) => {
     logger.info(`[topicsController] getLogById: Start, id = ${ctx.params.id}`);
-    ctx.body = await topicsService.getLogById(ctx.params.id);
+    const sortOrder = ctx.query.sortOrder || 'desc';
+    ctx.body = await topicsService.getLogById(ctx.params.id, sortOrder);
     logger.info('[topicsController] getLogById: End');
 };
 

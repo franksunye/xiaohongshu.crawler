@@ -8,7 +8,12 @@ exports.getAllLogs = async () => {
     logger.info('[noteLogsService] getAllLogs: End');
     return logs;
 };
-
+exports.getLogsByPageAndSort = async (page, pageSize, sortField, sortOrder) => {
+    logger.info(`[noteLogsService] getLogsByPageAndSort: Start, page = ${page}, pageSize = ${pageSize}, sortField = ${sortField}, sortOrder = ${sortOrder}`);
+    const logs = await storageService.loadDataByPageAndSort(config.noteLogCsvFilePath, Number(page), Number(pageSize), sortField, sortOrder);
+    logger.info(`[noteLogsService] getLogsByPageAndSort: End`);
+    return logs;
+};
 exports.getLogById = async (id) => {
     logger.info(`[noteLogsService] getLogById: Start, id = ${id}`);
     const logs = await storageService.loadData(config.noteLogCsvFilePath);
@@ -18,14 +23,19 @@ exports.getLogById = async (id) => {
 };
 
 exports.createLog = async (noteLogs) => {
-    // logger.info(`[noteLogsService] createLog: Start, noteLogs = ${JSON.stringify(noteLogs)}`);
+    logger.debug(`[noteLogsService] createLog: Start, noteLogs = ${JSON.stringify(noteLogs)}`);
+    let addedCount = 0;
     for (const noteLog of noteLogs) {
         if (typeof noteLog.likes !== 'string') {
             noteLog.likes = String(noteLog.likes);
         }
         const isAdded = await storageService.writeDataWithDuplicationCheck(config.noteLogCsvFilePath, [noteLog], Object.keys(noteLog), ['id', 'likes']);
-        logger.info(`[noteLogsService] createLog: End, isAdded = ${isAdded}`);
+        logger.debug(`[noteLogsService] createLog: End, isAdded = ${isAdded}`);
+        if (isAdded){
+            addedCount++;
+        }
     }
+    logger.info(`[noteLogsService] createLog: End, addedCount = ${addedCount}`);
 };
 
 exports.countLogs = async () => {
