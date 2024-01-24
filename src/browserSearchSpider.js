@@ -135,8 +135,8 @@ async function searchForKeyword(page, keyword) {
   await page.waitForTimeout(5000); // 可根据实际情况调整等待时间
 
   // 定位并点击下拉列表以展开它
-  await page.click("div.filter-box > div.filter");
-
+  await page.click("div.filter-box div.filter");
+    
   // 等待下拉列表动画完成（可根据需要调整等待时间）
   await page.waitForTimeout(1000); // 1秒等待
 
@@ -172,7 +172,7 @@ logger.info("Program started");
   await sendWechatNotification(message);
 
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
   });
 
   const context = await browser.newContext();
