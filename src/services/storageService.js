@@ -71,8 +71,9 @@ exports.writeDataWithDuplicationCheck = async (filePath, newData, fieldNames, un
 
     const uniqueData = newData.filter(newRecord =>
         !existingData.some(existingRecord =>
-            uniqueFields.every(field => existingRecord[field] === newRecord[field]))
-    );
+            uniqueFields.every(field => String(existingRecord[field]) === String(newRecord[field])))
+     );
+     
     logger.debug(`[storageService] writeDataWithDuplicationCheck: Filtered unique data, uniqueData = ${JSON.stringify(uniqueData)}`);
 
     if (uniqueData.length > 0) {
