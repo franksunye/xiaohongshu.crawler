@@ -1,3 +1,5 @@
+// browserSearchSpider.js
+
 const { chromium } = require("playwright");
 const readline = require("readline");
 const fs = require("fs");
@@ -8,11 +10,12 @@ const {
   sendFile,
   sendImageToWebhook,
 } = require("./services/wechatService");
+const pocketbaseClient = require("./utils/pocketbaseClient");
 
 const SEARCH_API_URL =
   "https://edith.xiaohongshu.com/api/sns/web/v1/search/notes";
 const cookiesFilePath = "./data/cookies.json";
-const keywords = ["防水维修", "懂防水", "防水发白"]; // Add more keywords as needed
+const keywords = ["防水维修", "屋顶漏水", "卫生间漏水", "阳台漏水", "窗台漏水", "漏水自己修"]; // Add more keywords as needed
 const maxRetries = 3; // Maximum number of retries
 let timeout = 60000; // Initial timeout
 const pagesToCapture = 10; // Number of pages to capture
@@ -94,7 +97,7 @@ async function login(page, mobileNumber) {
   await page.fill('input[name="xhs-pc-web-phone"]', mobileNumber);
 
   // 勾选同意阅读复选框（如果存在）
-  await page.click("svg.radio");
+  await page.click("span.agree-icon");
 
   // 点击获取验证码
   await page.click(".code-button");
@@ -236,10 +239,11 @@ logger.info("Program started");
     const endTime = new Date();
     const totalTime = endTime - startTime;
 
-    // Format the message
-    const message = `我已经完成了本次的搜索和数据采集任务，工作成果已经发出，总共用时是${
-      totalTime / 1000
-    }秒`;
+    const hours = Math.floor(totalTime / 3600000);
+    const minutes = Math.floor((totalTime % 3600000) / 60000);
+    const seconds = Math.floor(((totalTime % 3600000) % 60000) / 1000);
+
+    const message = `我已经完成了本次的搜索和数据采集任务，工作成果已经发出，总共用时是${hours}小时${minutes}分钟${seconds}秒`;
 
     // Send the message
     await sendWechatNotification(message);
